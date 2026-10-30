@@ -1,0 +1,32 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Texture2D" path="res://art/background.png" id="1_bg"]
+[ext_resource type="Script" path="res://hero.gd" id="2_hero"]
+[ext_resource type="SpriteFrames" path="res://art/hero_frames.tres" id="3_frames"]
+
+[sub_resource type="GDScript" id="shadow"]
+script/source = "extends Node2D
+
+func _draw() -> void:
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0, 0.22))
+	draw_circle(Vector2.ZERO, 70.0, Color(0.25, 0.2, 0.4, 0.28))
+"
+
+[node name="Main" type="Node2D"]
+
+[node name="Background" type="Sprite2D" parent="."]
+texture = ExtResource("1_bg")
+centered = false
+
+[node name="Hero" type="Node2D" parent="."]
+position = Vector2(560, 610)
+script = ExtResource("2_hero")
+
+[node name="Shadow" type="Node2D" parent="Hero"]
+position = Vector2(0, -2)
+script = SubResource("shadow")
+
+[node name="Sprite" type="AnimatedSprite2D" parent="Hero"]
+sprite_frames = ExtResource("3_frames")
+animation = &"idle"
+offset = Vector2(3, -219)
