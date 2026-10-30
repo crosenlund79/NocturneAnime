@@ -5,13 +5,17 @@ with the same name minus `template_` replaces it automatically. Templates are ne
 
 ## Workflow
 
-1. Open `assets/sprites/characters/hero/animations/walk/` (or `idle/`).
+1. Open `assets/sprites/characters/atlas/animations/walk/` (or `fishcat/`, or `idle/`).
 2. Open e.g. `template_walk_03.png` in your drawing app (Krita, Clip Studio, Procreate, Photoshop…).
 3. Draw your version on a new layer above it, then hide/delete the template layer.
 4. Save as `walk_03.png` **in the same folder**. Keep the template file.
 5. Run the game (F5). Frame 3 of the walk now uses your drawing; every other frame keeps its template.
 
 Replace frames one at a time, in any order. Delete your file to go back to the template.
+
+The characters are drawn as **complete frames** (one image per pose), not separate head/hair/body
+pieces, so each character has just `animations/idle/` (24 frames) and `animations/walk/` (12 frames).
+The original references are in `assets/references/` – keep them open next to the templates.
 
 ## Naming
 
@@ -36,7 +40,8 @@ If both a PNG and a JPG exist, the PNG is used. Frame numbers are 2 digits, star
   background. JPG is fine for backgrounds.
 - Background: 1280 × 720.
 - Timing is fixed per animation (idle 24 frames @ 12 fps, walk 12 frames @ 14 fps, see
-  `resources/characters/hero/hero.tres`). Keep the same pose order as the templates.
+  `resources/characters/<id>/<id>.tres`). Keep the same pose order as the templates.
+- Fishcat is drawn about 7 % smaller than Atlas on the same canvas – keep her at the template's size.
 - The ground shadow is drawn by the game; don't paint one into the frames.
 
 ## Exported Windows builds
@@ -47,7 +52,7 @@ To add or change artwork **after** exporting, create the same folder path next t
 
 ```
 MyGame.exe
-assets/sprites/characters/hero/animations/walk/walk_03.png
+assets/sprites/characters/fishcat/animations/walk/walk_03.png
 assets/sprites/environments/rooftop/background.png
 ```
 
@@ -56,5 +61,5 @@ Files there win over anything packed inside the game. Restart the game to see ch
 ## Regenerating templates
 
 `tools/art_generator/` contains the code that drew the templates (Python + Pillow, Node + Playwright):
-`python3 tools/art_generator/build_templates.py <temp folder>`. It only writes `template_*` files, so
-your drawings are safe.
+`python3 tools/art_generator/build_templates.py <temp folder> [atlas|fishcat]`. It only writes
+`template_*` files, so your drawings are safe.

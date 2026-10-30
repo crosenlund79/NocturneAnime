@@ -1,17 +1,27 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/main/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/environments/rooftop.tscn" id="2_rooftop"]
-[ext_resource type="PackedScene" path="res://scenes/characters/hero.tscn" id="3_hero"]
-[ext_resource type="Script" path="res://scripts/characters/player_input.gd" id="4_input"]
+[ext_resource type="PackedScene" path="res://scenes/characters/atlas.tscn" id="3_atlas"]
+[ext_resource type="PackedScene" path="res://scenes/characters/fishcat.tscn" id="4_fishcat"]
+[ext_resource type="Script" path="res://scripts/characters/player_input.gd" id="5_input"]
 
 [node name="Main" type="Node2D"]
+y_sort_enabled = true
 script = ExtResource("1_main")
 
 [node name="Location" parent="." instance=ExtResource("2_rooftop")]
 
-[node name="Hero" parent="." instance=ExtResource("3_hero")]
-position = Vector2(560, 610)
+[node name="Atlas" parent="." instance=ExtResource("3_atlas")]
+position = Vector2(430, 600)
 
-[node name="PlayerInput" type="Node" parent="Hero"]
-script = ExtResource("4_input")
+[node name="PlayerInput" type="Node" parent="Atlas"]
+script = ExtResource("5_input")
+action_prefix = "p1_"
+
+[node name="Fishcat" parent="." instance=ExtResource("4_fishcat")]
+position = Vector2(820, 630)
+
+[node name="PlayerInput" type="Node" parent="Fishcat"]
+script = ExtResource("5_input")
+action_prefix = "p2_"

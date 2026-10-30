@@ -1,6 +1,6 @@
 """Simple anime-style backdrop: cel-shaded sky, clouds, layered skyline and a tiled plaza. -> background.svg"""
 import random, sys
-from character import smooth
+from rig import smooth
 
 random.seed(7)
 W, H, HORIZON = 1280, 720, 455

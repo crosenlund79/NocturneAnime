@@ -1,0 +1,7 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/characters/character.tscn" id="1_char"]
+[ext_resource type="Resource" path="res://resources/characters/atlas/atlas.tres" id="2_def"]
+
+[node name="Atlas" instance=ExtResource("1_char")]
+definition = ExtResource("2_def")
