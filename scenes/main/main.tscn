@@ -1,0 +1,17 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/main/main.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/environments/rooftop.tscn" id="2_rooftop"]
+[ext_resource type="PackedScene" path="res://scenes/characters/hero.tscn" id="3_hero"]
+[ext_resource type="Script" path="res://scripts/characters/player_input.gd" id="4_input"]
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="Location" parent="." instance=ExtResource("2_rooftop")]
+
+[node name="Hero" parent="." instance=ExtResource("3_hero")]
+position = Vector2(560, 610)
+
+[node name="PlayerInput" type="Node" parent="Hero"]
+script = ExtResource("4_input")

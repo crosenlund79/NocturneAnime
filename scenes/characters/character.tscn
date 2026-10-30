@@ -1,0 +1,15 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/characters/character.gd" id="1_char"]
+[ext_resource type="Script" path="res://scripts/characters/character_shadow.gd" id="2_shadow"]
+[ext_resource type="Script" path="res://scripts/characters/character_visual.gd" id="3_visual"]
+
+[node name="Character" type="Node2D"]
+script = ExtResource("1_char")
+
+[node name="Shadow" type="Node2D" parent="."]
+position = Vector2(0, -2)
+script = ExtResource("2_shadow")
+
+[node name="Visual" type="AnimatedSprite2D" parent="."]
+script = ExtResource("3_visual")
