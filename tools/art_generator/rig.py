@@ -224,33 +224,33 @@ def ease(x):
     return x * x * (3 - 2 * x)
 
 
-def leg_cycle(q, ground_off, lift=34):
+def leg_cycle(q, ground_off, lift=34, stride=STRIDE):
     """q in [0,1): 0 = heel strike, 0..0.5 stance, 0.5..1 swing -> (rel x, ankle y, foot angle)."""
     q %= 1.0
     if q < 0.5:
         s = q / 0.5
-        x = STRIDE - 2 * STRIDE * s
+        x = stride - 2 * stride * s
         ang = -14 * max(0, 1 - s / 0.18) + 26 * max(0, (s - 0.62) / 0.38) ** 1.5
         y = foot_ground(ang)
     else:
         s = (q - 0.5) / 0.5
-        x = -STRIDE + 2 * STRIDE * ease(s)
+        x = -stride + 2 * stride * ease(s)
         ang = 26 * (1 - s) ** 2 - 14 * ease(max(0, (s - 0.55) / 0.45))
         y = foot_ground(ang) - lift * math.sin(math.pi * min(1, s * 1.15)) ** 1.2
     return x, y + ground_off, ang
 
 
-def walk_pose(p, arm_swing=28, lift=34):
+def walk_pose(p, arm_swing=28, lift=34, stride=STRIDE):
     bob = math.cos(4 * math.pi * p)
-    xn, yn, an = leg_cycle(p, 0, lift)
-    xf, yf, af = leg_cycle(p + 0.5, FAR_Y, lift)
+    xn, yn, an = leg_cycle(p, 0, lift, stride)
+    xf, yf, af = leg_cycle(p + 0.5, FAR_Y, lift, stride)
     sw = math.cos(2 * math.pi * (p - 0.06))
     return dict(px=PX, py=341 + 4.5 * bob, torso=5 + 1.2 * math.cos(4 * math.pi * (p - 0.1)),
                 head=-3 - 1.5 * math.cos(4 * math.pi * (p - 0.15)),
                 sh_n=8 + arm_swing * sw, el_n=-14 - 26 * max(0, -sw), wr_n=4,
                 sh_f=4 - arm_swing * 0.93 * sw, el_f=-14 - 26 * max(0, sw), wr_f=4,
                 ank_n=(PX - 8 + xn, yn), ank_f=(PX + 18 + xf, yf), foot_n=an, foot_f=af,
-                blink=0, wind=0.55 + 0.1 * bob, phase=p * 2, cycle=p, moving=1.0,
+                blink=0, wind=0.55 + 0.1 * bob, phase=p * 2, cycle=p, moving=1.0, flare=0.0, crouch=0.0,
                 hair_lag=5 * math.sin(4 * math.pi * (p - 0.2)))
 
 
@@ -260,5 +260,58 @@ def idle_pose(t, i, blink_frames=(17, 18, 19)):
     return dict(px=PX, py=338 + 1.6 * b, torso=1.5 + 0.7 * b, head=-1 + 1.4 * math.sin(2 * math.pi * t - 0.7),
                 sh_n=12 - 2 * b, el_n=-16 - 2 * b, wr_n=2, sh_f=-8 + 2 * b, el_f=-18 - 2 * b, wr_f=2,
                 ank_n=(166, GROUND - 18), ank_f=(232, GROUND - 18 + FAR_Y), foot_n=0, foot_f=-3,
-                blink=blink, wind=0.18 + 0.08 * math.sin(2 * math.pi * t), phase=t, cycle=t, moving=0.0,
+                blink=blink, wind=0.18 + 0.08 * math.sin(2 * math.pi * t), phase=t, cycle=t, moving=0.0, flare=0.0, crouch=0.0,
                 breath=b, hair_lag=1.5 * math.sin(2 * math.pi * t - 1.2))
+
+
+# crouch ------------------------------------------------------------------
+CROUCH_DROP = 62                 # how far the pelvis sinks (frame px)
+CROUCH_STRIDE = 36               # sneak step: shorter and slower than the walk
+
+
+def crouch_pose(t, i):
+    """Low, wide stance with a forward lean; breathing loop."""
+    P = idle_pose(t, i, blink_frames=(8, 9, 10))
+    b = P['breath']
+    P.update(py=338 + CROUCH_DROP + 1.4 * b, torso=13 + 0.8 * b, head=-11 + 1.0 * math.sin(2 * math.pi * t - .7),
+             sh_n=-14 - 2 * b, el_n=-38, wr_n=6, sh_f=-24 + 2 * b, el_f=-34, wr_f=6,
+             ank_n=(PX - 34, GROUND - 18), ank_f=(PX + 40, GROUND - 18 + FAR_Y), foot_n=0, foot_f=-2,
+             crouch=1.0, wind=0.25 + 0.06 * b)
+    return P
+
+
+def crouch_walk_pose(p):
+    """Sneaking walk: shorter strides, lower hips, small arm swing."""
+    P = walk_pose(p, arm_swing=14, lift=16, stride=CROUCH_STRIDE)
+    sw = math.cos(2 * math.pi * (p - 0.06))
+    P.update(py=338 + CROUCH_DROP - 4 + 2.5 * math.cos(4 * math.pi * p), torso=14 + 1.0 * math.cos(4 * math.pi * (p - .1)),
+             head=-12, sh_n=-10 + 14 * sw, el_n=-40, sh_f=-20 - 13 * sw, el_f=-36, crouch=1.0, wind=0.4,
+             ank_n=(P['ank_n'][0] - 18, P['ank_n'][1]), ank_f=(P['ank_f'][0] + 10, P['ank_f'][1]))
+    return P
+
+
+# jump --------------------------------------------------------------------
+# 8 key poses: anticipation, take-off, rise, apex x2, fall, pre-land, land.
+# The game plays them by jump progress and lifts the sprite itself; the shadow stays on the ground.
+JUMP_KEYS = [
+    # dy (pelvis), torso, head, sh_n, el_n, sh_f, el_f, near ankle (dx, dy from pelvis), far ankle, foot_n, foot_f, wind, flare, hair_lag
+    (52, 14, -10, 40, -30, 34, -28, (-30, 254), (34, 250), 0, -2, 0.3, 0.0, -2),       # 0 anticipation (squash)
+    (-12, 2, 4, 160, -12, -146, -16, (2, 262), (-20, 258), 40, 36, 0.0, -0.4, 6),     # 1 take-off: stretch, arms up
+    (-6, 0, 2, 150, -16, -130, -26, (30, 200), (-30, 246), 10, 34, 0.1, -0.2, 4),     # 2 rise: lead knee up
+    (0, -4, -2, 138, -22, -150, -30, (34, 180), (-6, 196), -6, 10, 0.9, 0.6, 0),      # 3 apex: tuck, arms up
+    (2, -4, -4, 132, -30, -142, -36, (36, 182), (-4, 198), -8, 8, 1.2, 0.9, -3),      # 4 apex hold
+    (0, 2, -4, 112, -14, -112, -12, (20, 236), (-14, 246), 14, 18, 1.6, 1.0, -6),     # 5 fall: hair and cloth float up
+    (-4, 4, -4, -74, -14, -56, -12, (16, 254), (-10, 254), -6, -2, 1.3, 0.7, -5),      # 6 pre-land: legs reach down
+    (44, 12, -8, 24, -40, 14, -36, (-26, 254), (30, 250), 0, -2, 0.6, 0.3, 4),         # 7 land (squash)
+]
+
+
+def jump_pose(k):
+    dy, ta, hd, shn, eln, shf, elf, an, af, fn, ff, wind, flare, lag = JUMP_KEYS[k]
+    py = 338 + dy
+    P = idle_pose(0.25, 0)
+    P.update(py=py, torso=ta, head=hd, sh_n=shn, el_n=eln, wr_n=4, sh_f=shf, el_f=elf, wr_f=4,
+             ank_n=(PX + an[0], min(py + an[1], GROUND - 18)), ank_f=(PX + af[0], min(py + af[1], GROUND - 18 + FAR_Y)),
+             foot_n=fn, foot_f=ff, wind=wind, flare=flare, hair_lag=lag, phase=k / 8, cycle=k / 8, moving=0.6,
+             crouch=1.0 if k in (0, 7) else 0.0, air=0.0 if k in (0, 7) else 1.0)
+    return P

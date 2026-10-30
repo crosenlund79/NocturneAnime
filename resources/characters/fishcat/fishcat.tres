@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="CharacterDefinition" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="CharacterDefinition" load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/characters/character_definition.gd" id="1_def"]
 [ext_resource type="Script" path="res://scripts/characters/sprite_animation.gd" id="2_anim"]
@@ -17,6 +17,27 @@ frame_count = 12
 fps = 14.0
 loop = true
 
+[sub_resource type="Resource" id="Resource_crouch"]
+script = ExtResource("2_anim")
+name = &"crouch"
+frame_count = 12
+fps = 10.0
+loop = true
+
+[sub_resource type="Resource" id="Resource_crouch_walk"]
+script = ExtResource("2_anim")
+name = &"crouch_walk"
+frame_count = 12
+fps = 10.0
+loop = true
+
+[sub_resource type="Resource" id="Resource_jump"]
+script = ExtResource("2_anim")
+name = &"jump"
+frame_count = 8
+fps = 12.0
+loop = false
+
 [resource]
 script = ExtResource("1_def")
 id = &"fishcat"
@@ -25,9 +46,16 @@ sprite_dir = "res://assets/sprites/characters/fishcat"
 canvas_size = Vector2i(600, 960)
 origin = Vector2(294, 918)
 display_scale = 0.5
-animations = Array[ExtResource("2_anim")]([SubResource("Resource_idle"), SubResource("Resource_walk")])
+animations = Array[ExtResource("2_anim")]([SubResource("Resource_idle"), SubResource("Resource_walk"), SubResource("Resource_crouch"), SubResource("Resource_crouch_walk"), SubResource("Resource_jump")])
 idle_animation = &"idle"
 walk_animation = &"walk"
+crouch_animation = &"crouch"
+crouch_walk_animation = &"crouch_walk"
+jump_animation = &"jump"
 walk_speed = 195.3
 depth_speed = 130.0
+crouch_speed = 83.7
 shadow_radius = 64.0
+jump_height = 120.0
+jump_duration = 0.62
+landing_time = 0.12

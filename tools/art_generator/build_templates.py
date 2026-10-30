@@ -11,7 +11,7 @@ from PIL import Image
 import rig
 
 SCALE = 1.5                      # template canvas = 2x the in-game size (600x960), comfortable to draw over
-ANIMS = {'idle': (24, 12), 'walk': (12, 14)}   # frames, fps
+ANIMS = {'idle': (24, 12), 'walk': (12, 14), 'crouch': (12, 10), 'crouch_walk': (12, 10), 'jump': (8, 12)}  # frames, fps
 CHARACTERS = ['atlas', 'fishcat']
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, '..', '..'))
@@ -20,10 +20,16 @@ BG_PATH = os.path.join(ROOT, 'assets', 'sprites', 'environments', 'rooftop', 'te
 
 def poses(mod, anim):
     n = ANIMS[anim][0]
+    hook = lambda name: getattr(mod, name, lambda p: p)   # optional per-character pose tweaks
     if anim == 'idle':
         return [mod.idle(rig.idle_pose(i / n, i)) for i in range(n)]
-    walk = getattr(mod, 'walk', lambda p: p)
-    return [walk(rig.walk_pose(i / n)) for i in range(n)]
+    if anim == 'walk':
+        return [hook('walk')(rig.walk_pose(i / n)) for i in range(n)]
+    if anim == 'crouch':
+        return [hook('crouch')(rig.crouch_pose(i / n, i)) for i in range(n)]
+    if anim == 'crouch_walk':
+        return [hook('walk')(rig.crouch_walk_pose(i / n)) for i in range(n)]
+    return [hook('jump')(rig.jump_pose(i)) for i in range(n)]
 
 
 def main(tmp, names):
@@ -51,8 +57,9 @@ def main(tmp, names):
         Image.open(os.path.join(tmp, f'{name}__showcase.png')).save(
             os.path.join(ROOT, 'docs', 'images', f'{name}_showcase.png'), optimize=True)
         cs = importlib.import_module(name).CHAR_SCALE
+        speed = lambda stride, anim: 4 * stride * SCALE * 0.5 * cs / (ANIMS[anim][0] / ANIMS[anim][1])
         print(f'{name}: canvas {round(rig.W * SCALE)}x{round(rig.H * SCALE)}, origin {rig.PX * SCALE},{rig.GROUND * SCALE},'
-              f' walk_speed {4 * rig.STRIDE * SCALE * 0.5 * cs / (ANIMS["walk"][0] / ANIMS["walk"][1]):.1f}')
+              f' walk_speed {speed(rig.STRIDE, "walk"):.1f}, crouch_speed {speed(rig.CROUCH_STRIDE, "crouch_walk"):.1f}')
 
     if names == CHARACTERS:
         bg_svg = os.path.join(tmp, 'template_background.svg')

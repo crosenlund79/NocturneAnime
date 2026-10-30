@@ -35,16 +35,19 @@ tools/         Offline art generator that produced the template_ images (ignored
 | Animation frames | `assets/sprites/characters/<id>/animations/<anim>/` |
 | Template → replacement lookup | `scripts/systems/sprite_resolver.gd` (one static helper, used by everything) |
 | Visual playback (frames, facing, idle/walk choice) | `CharacterVisual` (the `Visual` node) |
-| Movement, bounds, depth scale | `Character` (root of `character.tscn`) |
+| Movement, crouch speed, jump arc, bounds, depth scale | `Character` (root of `character.tscn`) |
 | Input | `PlayerInput` node (child of a character in `main.tscn`), reading Input Map actions `<prefix>move_*` |
 | Walkable area of a place | `Location` (root of each environment scene) |
 
-`Character` only reads a `move_input` vector; it doesn't know about the keyboard. A future NPC gets
+`Character` only reads intents – `move_input`, `crouch_input` and `jump()` – so it doesn't know about
+the keyboard. A jump only changes `height` (the sprite is lifted, the node and its shadow stay on the
+ground), and jump frames are chosen by progress through the arc, not by fps. A future NPC gets
 an AI controller node that writes `move_input` instead of `PlayerInput`.
 
 **Players and controls.** Atlas and Fishcat are two instances of `character.tscn`, each with a
-`PlayerInput` whose `action_prefix` picks a player slot: `p1_` (WASD) for Atlas, `p2_` (arrow keys)
-for Fishcat. Keys are bound only in *Project Settings → Input Map*, never in code, and the slots are
+`PlayerInput` whose `action_prefix` picks a player slot: `p1_` for Atlas (WASD, Space jump, Left
+Shift crouch), `p2_` for Fishcat (arrows, Right Ctrl jump, Right Shift crouch); left/right modifier keys
+are told apart with Godot 4.3's key *location*. Keys are bound only in *Project Settings → Input Map*, never in code, and the slots are
 independent of the characters, so swapping who is player 1 is a one-line scene change.
 `Main` has y-sorting on, so whoever stands further forward is drawn in front.
 

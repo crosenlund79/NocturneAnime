@@ -8,7 +8,7 @@ extends Resource
 @export var display_name := ""
 
 @export_group("Artwork")
-## Root of this character's artwork, e.g. res://assets/sprites/characters/hero
+## Root of this character's artwork, e.g. res://assets/sprites/characters/atlas
 @export_dir var sprite_dir := ""
 ## Size of every template frame in pixels. All frames share this canvas.
 @export var canvas_size := Vector2i(600, 960)
@@ -19,13 +19,27 @@ extends Resource
 @export var animations: Array[SpriteAnimation] = []
 @export var idle_animation: StringName = &"idle"
 @export var walk_animation: StringName = &"walk"
+@export var crouch_animation: StringName = &"crouch"
+@export var crouch_walk_animation: StringName = &"crouch_walk"
+## Key poses played by jump progress (not by fps); the last frame is the landing pose.
+@export var jump_animation: StringName = &"jump"
 
 @export_group("Movement")
 ## Horizontal speed in px/s; matches the stride drawn in the walk cycle so feet don't slide.
 @export var walk_speed := 210.0
 ## Speed toward / away from the camera in px/s.
 @export var depth_speed := 130.0
+## Horizontal speed while crouching; matches the stride of the crouch_walk cycle.
+@export var crouch_speed := 90.0
 @export var shadow_radius := 70.0
+
+@export_group("Jump")
+## Peak height of a jump in screen px.
+@export var jump_height := 120.0
+## Seconds from take-off to touch-down.
+@export var jump_duration := 0.62
+## Seconds the landing pose is held after touch-down.
+@export var landing_time := 0.12
 
 
 func frame_template_path(animation: SpriteAnimation, index: int) -> String:

@@ -14,7 +14,15 @@ with the same name minus `template_` replaces it automatically. Templates are ne
 Replace frames one at a time, in any order. Delete your file to go back to the template.
 
 The characters are drawn as **complete frames** (one image per pose), not separate head/hair/body
-pieces, so each character has just `animations/idle/` (24 frames) and `animations/walk/` (12 frames).
+pieces, so each character has one folder per animation:
+
+| Folder | Frames | Notes |
+|---|---|---|
+| `idle/` | 24 @ 12 fps | loop |
+| `walk/` | 12 @ 14 fps | loop |
+| `crouch/` | 12 @ 10 fps | loop, while holding crouch |
+| `crouch_walk/` | 12 @ 10 fps | loop, sneaking |
+| `jump/` | 8 key poses | 01 anticipation · 02 take-off · 03 rise · 04–05 apex · 06 fall · 07 pre-land · 08 landing |
 The original references are in `assets/references/` – keep them open next to the templates.
 
 ## Naming
@@ -39,8 +47,10 @@ If both a PNG and a JPG exist, the PNG is used. Frame numbers are 2 digits, star
 - Use **PNG with transparency** for characters. JPG has no transparency, so a JPG frame shows its white
   background. JPG is fine for backgrounds.
 - Background: 1280 × 720.
-- Timing is fixed per animation (idle 24 frames @ 12 fps, walk 12 frames @ 14 fps, see
-  `resources/characters/<id>/<id>.tres`). Keep the same pose order as the templates.
+- Timing is fixed per animation (see the table above and `resources/characters/<id>/<id>.tres`).
+  Keep the same pose order as the templates.
+- **Jump frames: don't draw the height.** The game lifts the sprite along the arc itself; draw each
+  jump pose at the template's position (tucked feet may float above the ground line, as in the templates).
 - Fishcat is drawn about 7 % smaller than Atlas on the same canvas – keep her at the template's size.
 - The ground shadow is drawn by the game; don't paint one into the frames.
 

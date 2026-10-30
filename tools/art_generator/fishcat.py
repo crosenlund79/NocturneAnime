@@ -165,15 +165,19 @@ def skirt(F, P):
     bh, fh = to_world(P, (-38, -6)), to_world(P, (38, -10))
     xs = [P['ank_n'][0], P['ank_f'][0]]
     kn = max(knee_world(P, 'n')[0], knee_world(P, 'f')[0])
-    front_hem = (max(xs) + 50 + sway * .6, GROUND - 17)
-    back_hem = (min(xs) - 70 + sway * 1.4 - 14 * mv, GROUND - 1)
+    # hem hangs from the lowest foot (so it follows the legs in a jump), billows up with `flare`
+    # and pools wider in a crouch
+    floor = max(P['ank_n'][1], P['ank_f'][1]) + 18 if P.get('air') else GROUND
+    fl, cr = P.get('flare', 0.0), P.get('crouch', 0.0)
+    front_hem = (max(xs) + 50 + sway * .6 + fl * 26 + cr * 16, floor - 17 - fl * 34)
+    back_hem = (min(xs) - 70 + sway * 1.4 - 14 * mv - fl * 24 - cr * 12, floor - 1 - fl * 46)
     front_mid = (max(fh[0] + 8, kn + 20), (fh[1] + front_hem[1]) / 2)
     back_mid = (bh[0] - 10 + sway * .5 - 6 * mv, (bh[1] + back_hem[1]) / 2)
     hem = []
     for i in range(1, 6):
         t = i / 6
         x = front_hem[0] + (back_hem[0] - front_hem[0]) * t
-        y = front_hem[1] + (back_hem[1] - front_hem[1]) * t * t + 3 * math.sin(t * math.pi * 3 + P['cycle'] * 6.28)
+        y = front_hem[1] + (back_hem[1] - front_hem[1]) * t * t + fl * 14 * math.sin(t * math.pi) + 3 * math.sin(t * math.pi * 3 + P['cycle'] * 6.28)
         hem.append((x, y))
     pts = [bk, fr, fh, front_mid, front_hem + (1,)] + hem + [back_hem + (1,), back_mid, bh]
     d = smooth(pts)

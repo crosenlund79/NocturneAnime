@@ -2,14 +2,15 @@
 
 Two playable characters on one keyboard, based on the hand-drawn references in `assets/references/`:
 
-| Character | Controls |
-|---|---|
-| **Atlas** – blue amphibious humanoid with head fins | WASD |
-| **Fishcat** – turquoise spotted cat-folk in a yellow dress | Arrow keys |
+| Character | Move | Jump | Crouch (hold) |
+|---|---|---|---|
+| **Atlas** – blue amphibious humanoid with head fins | WASD | Space | Left Shift |
+| **Fishcat** – turquoise spotted cat-folk in a yellow dress | Arrow keys | Right Ctrl | Right Shift |
 
 Open the folder in Godot 4.3 and press F5.
 
 ![both characters](docs/images/screenshot_walking.png)
+![jumping](docs/images/screenshot_jump.png)
 
 All character artwork can be replaced with hand-drawn versions without touching code: save
 `walk_03.png` next to `template_walk_03.png` and run the game.

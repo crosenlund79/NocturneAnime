@@ -29,15 +29,31 @@ func setup(definition: CharacterDefinition) -> void:
 	play(definition.idle_animation)
 
 
-## direction: the character's current movement input.
-func show_motion(direction: Vector2) -> void:
+## Picks the animation for the character's current state.
+## jump_progress: 0..1 through the air; landing: true while the landing pose is held.
+func show_state(direction: Vector2, crouching: bool, airborne: bool, jump_progress: float, landing: bool) -> void:
 	if _definition == null:
 		return
 	if direction.x != 0.0:
 		flip_h = direction.x < 0.0
 		_update_offset()
-	var target := _definition.walk_animation if direction != Vector2.ZERO else _definition.idle_animation
-	if animation != target:
+	var d := _definition
+	if (airborne or landing) and sprite_frames.has_animation(d.jump_animation):
+		# key poses follow the jump arc instead of a frame rate, so pose and height always agree
+		var count := sprite_frames.get_frame_count(d.jump_animation)
+		var index := count - 1 if landing else clampi(int(jump_progress * (count - 1)), 0, count - 2)
+		if animation != d.jump_animation:
+			animation = d.jump_animation
+		pause()
+		frame = index
+		return
+	var moving := direction != Vector2.ZERO
+	var target := d.walk_animation if moving else d.idle_animation
+	if crouching:
+		var crouch_target := d.crouch_walk_animation if moving else d.crouch_animation
+		if sprite_frames.has_animation(crouch_target):
+			target = crouch_target
+	if animation != target or not is_playing():
 		play(target)
 
 
