@@ -3,8 +3,10 @@
 From the portrait: blue skin with dark hatched shading, swept-back dark navy hair with a curled
 forelock and long locks past the shoulders, big spined head fins at ear level, glowing pale eyes,
 heavy brows, a highlighted nose, fanged smirk, stubble, and pale-cyan light streaks everywhere.
-The body below the shoulders is an original design: a sleeveless deep-sea wrap vest open over
-the chest, an aqua sash, loose trousers with shin wraps, bare webbed feet and forearm fins.
+Outfit from assets/references/Atlas_1..4.jpg (clothing sketches): a fitted sleeveless fishnet top with
+a deep V neck and an angular hem pointing to the navel, a dark V-shaped choker, short shorts with a
+spiky fringe hem, fishnet stockings and stacked loose hoop bangles. Bare webbed feet and the forearm
+fins keep him aquatic.
 """
 import math
 from rig import (Frame, smooth, line, taper, g, tr, rot, streaks, arm_chain, leg_chain, torso_group,
@@ -166,60 +168,93 @@ def long_hair(F, P):
     return ''.join(out[::-1])
 
 
+def net(F, x0, y0, w, h):
+    """Fishnet lattice in the current bone space (an SVG pattern, so it moves with the limb)."""
+    if not getattr(F, 'net_id', None):
+        F.net_id = 'atnet'
+        F.defs.append(f'<pattern id="atnet" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">'
+                      f'<path d="M0,0 H8 M0,0 V8" stroke="{VEST}" stroke-width="1.7" fill="none"/>'
+                      f'<circle cx="0" cy="0" r="1.1" fill="{VEST}"/></pattern>')
+    return (f'<rect x="{x0}" y="{y0}" width="{w}" height="{h}" fill="{VEST}" opacity=".16"/>'
+            f'<rect x="{x0}" y="{y0}" width="{w}" height="{h}" fill="url(#atnet)"/>')
+
+
+def piping(d, w=4.0):
+    """Navy edge binding with a thin teal core."""
+    return line(d, w, VEST, 'round') + line(d, w * .35, TRIM, 'round')
+
+
 def torso(F, ang, P):
     s = []
     body = smooth([(-48, -126), (-16, -152), (28, -152), (46, -138), (50, -112), (42, -86), (30, -56),
                    (32, -24), (34, 6), (-32, 8), (-34, -22), (-28, -58), (-40, -100)])
     chest = (line('M20,-140 Q22,-110 20,-92', 1.8, SKIN_DK)               # sternum
              + line('M-8,-112 Q8,-100 20,-104', 1.6, SKIN_DK) + line('M22,-104 Q34,-100 42,-108', 1.5, SKIN_DK)
-             + line('M-10,-142 Q4,-138 16,-144', 1.4, SKIN_DK) + line('M26,-144 Q36,-140 44,-136', 1.3, SKIN_DK)
-             + streaks(2, -126, -20, 4, 14, 3.6, 1.5, STREAK) + streaks(34, -122, -20, 3, 10, 3.2, 1.3, STREAK))
+             + line('M4,-46 Q16,-43 28,-46', 1.4, SKIN_DK) + line('M14,-60 L14,-30', 1.2, SKIN_DK)   # abs
+             + f'<path d="M17,-36 q2,4 0,6" stroke="{SKIN_DK}" stroke-width="1.6" fill="none"/>'         # navel
+             + streaks(2, -126, -20, 4, 14, 3.6, 1.5, STREAK) + streaks(34, -122, -20, 3, 10, 3.2, 1.3, STREAK)
+             + streaks(-12, -46, -20, 3, 10, 3.2, 1.3, STREAK))
     s.append(F.part(body, SKIN, SKIN_SH, ang, 9, chest, sw=3.2, rim=SKIN_HI))
-    # sleeveless wrap vest, open in a deep V over the chest
-    vest_n = smooth([(-52, -126), (-18, -154), (-2, -152), (8, -112), (16, -60, 1), (-32, -54, 1), (-34, -94), (-48, -104)])
-    scales = ''.join(f'<path d="M{x},{y} q4,5 8,0" fill="none" stroke="{VEST_HI}" stroke-width="1.2"/>'
-                     for y in range(-140, -56, 9) for x in range(-48 + (y // 9 % 2) * 4, 16, 8))
-    vdet = (scales + line('M-2,-152 Q4,-112 16,-60', 4, TRIM, 'butt')
-            + line('M-34,-120 Q-30,-96 -28,-70', 1.5, VEST_SH))
-    s.append(F.part(vest_n, VEST, VEST_SH, ang, 10, vdet, sw=3.0, rim=VEST_HI))
-    vest_f = smooth([(32, -150), (48, -136), (52, -110), (44, -80), (38, -64, 1), (32, -70), (30, -100), (28, -134)])
-    s.append(F.part(vest_f, VEST, VEST_SH, ang, 4, line('M30,-148 Q34,-104 36,-66', 3.5, TRIM, 'butt'), sw=2.6))
-    s.append(f'<circle cx="-8" cy="-136" r="5" fill="{PEARL}" stroke="#1c1424" stroke-width="2"/>'
-             f'<circle cx="-9.5" cy="-137.5" r="1.6" fill="#ffffff"/>')
+    # fitted sleeveless fishnet top: deep V neck, angular hem pointing down to the navel
+    top = smooth([(-46, -130), (-24, -150), (-8, -151, 1), (18, -100, 1), (28, -151, 1), (40, -147), (49, -128),
+                  (47, -104), (40, -86, 1), (16, -56, 1), (-30, -76, 1), (-36, -96), (-44, -112)])
+    tdet = (net(F, -60, -160, 120, 110)
+            + piping('M-8,-150 L18,-101 L28,-150', 4.2)                    # V neckline
+            + piping('M40,-86 L16,-57 L-30,-76', 3.6)                      # angular hem
+            + piping('M-44,-128 L-22,-150', 3.2) + piping('M40,-147 L48,-129', 3.2))   # shoulder straps
+    s.append(F.part(top, SKIN, SKIN_SH, ang, 9, tdet, sw=3.0, rim=SKIN_HI))
     return ''.join(s)
 
 
-def sash(F, ang, P):
-    """Aqua waist sash with a hanging tail that swings with the walk (torso space)."""
-    band = smooth([(-35, -34), (34, -40), (36, -20), (-34, -16)])
-    det = line('M-33,-25 Q0,-31 35,-29', 1.4, SASH_SH)
-    knot = smooth([(2, -40), (14, -42), (15, -18), (3, -16)])
-    out = [F.part(band, SASH, SASH_SH, ang, 4, det, sw=2.8)]
-    sw = math.sin(2 * math.pi * P['phase']) * (4 + 10 * P['wind'])
-    tail = taper([(8, -24), (6 - sw * .3, 2), (2 - sw * .7, 26), (-3 - sw, 48)], 11, 6, 10)
-    out.append(F.part(tail, SASH, SASH_SH, ang, 4, line(f'M7,-8 Q{3 - sw * .5:.1f},18 {-1 - sw:.1f},42', 1.2, SASH_SH), sw=2.6))
-    out.append(F.part(knot, SASH, SASH_SH, ang, 3, '', sw=2.4))
-    return ''.join(out)
+def choker(F, ang, P):
+    """Dark V-shaped collar at the throat (torso space, drawn over the neck)."""
+    d = smooth([(-8, -152, 1), (26, -154, 1), (22, -146), (12, -128, 1), (-3, -144)])
+    det = line('M-6,-150 L12,-131 L24,-152', 1.4, TRIM) + f'<circle cx="12" cy="-135" r="2.2" fill="{PEARL}"/>'
+    return F.part(d, VEST, VEST_SH, ang, 3, det, sw=2.6, rim=VEST_HI)
+
+
+def shorts(F, ang, P):
+    """Seat of the short shorts with a slim aqua belt and a small pouch (torso space)."""
+    d = smooth([(-35, -30), (34, -36), (37, -8), (32, 8), (-30, 10), (-36, -8)])
+    det = (line('M-34,-26 Q0,-33 35,-32', 6, SASH, 'butt') + line('M-34,-23 Q0,-30 35,-29', 1.2, SASH_SH, 'butt')
+           + f'<rect x="-28" y="-20" width="11" height="12" rx="2" fill="{VEST}" stroke="#1c1424" stroke-width="1.6"/>'
+           + line('M14,-22 Q16,-6 12,8', 1.4, PANTS_SH))
+    return F.part(d, PANTS, PANTS_SH, ang, 6, det, sw=2.8, rim=PANTS_HI)
+
+
+def bangles(ys, rx=15, ry=4.5, front=True, beads=False):
+    """Loose hoop bracelets around a limb: back halves go under the limb, front halves over it."""
+    out = ''
+    for k, y in enumerate(ys):
+        tilt = (-1) ** k * 4
+        sweep = 0 if front else 1
+        d = f'M{-rx},{y - tilt * .3:.1f} A{rx},{ry} {tilt} 0 {sweep} {rx},{y + tilt * .3:.1f}'
+        out += line(d, 4.6, '#1c1424') + line(d, 2.4, WRAP)
+        if front and beads:
+            out += f'<circle cx="{rx * .3:.1f}" cy="{y + ry * .95:.1f}" r="2.6" fill="{PEARL}" stroke="#1c1424" stroke-width="1.4"/>'
+    return out
 
 
 def upper_arm(F):
     def draw(a):
         d = smooth([(-17, -6), (-3, -20), (14, -13), (17, 4), (13, 50), (10, 88, 1), (-11, 88, 1), (-15, 40)])
-        det = (line('M-16,44 Q0,48 17,42', 5, '#c9d8ea', 'butt') + line('M-16,44 Q0,48 17,42', 1.4, '#7f95b0', 'butt')
-               + line('M-12,6 Q-6,0 4,4', 4, SKIN_DK) + line('M-14,16 Q-6,12 6,16', 3, SKIN_DK)   # dark banding
+        det = (line('M-12,6 Q-6,0 4,4', 4, SKIN_DK) + line('M-14,16 Q-6,12 6,16', 3, SKIN_DK)   # dark banding
                + streaks(2, 26, -20, 3, 10, 3, 1.3, STREAK))
-        return F.part(d, SKIN, SKIN_SH, a, 6, det, sw=3.0, rim=SKIN_HI)
+        ys = (40, 49)
+        return (bangles(ys, 18, 5, front=False) + F.part(d, SKIN, SKIN_SH, a, 6, det, sw=3.0, rim=SKIN_HI)
+                + bangles(ys, 18, 5, front=True, beads=True))
     return draw
 
 
 def forearm(F):
     def draw(a):
-        fin_d = smooth([(-12, 14), (-30, 30, 1), (-24, 40), (-34, 54, 1), (-22, 60), (-28, 74, 1), (-12, 72)])
-        fin_det = line('M-12,20 L-28,31 M-12,44 L-31,54 M-12,64 L-25,73', 1.6, FIN_SPINE)
+        fin_d = smooth([(-12, 10), (-30, 22, 1), (-24, 32), (-33, 44, 1), (-20, 50), (-24, 60, 1), (-11, 58)])
+        fin_det = line('M-12,16 L-28,23 M-12,36 L-30,44 M-12,52 L-22,59', 1.6, FIN_SPINE)
         d = smooth([(-11, -8), (11, -8), (11, 36), (8, 86, 1), (-8, 86, 1), (-11, 36)])
-        det = line('M-10,8 Q-4,4 6,8', 2.6, SKIN_DK) + streaks(2, 44, -20, 3, 9, 3, 1.2, STREAK)
-        return (F.part(fin_d, FIN, FIN_SH, a, 3, fin_det, sw=2.2)
-                + F.part(d, SKIN, SKIN_SH, a, 5, det, sw=3.0, rim=SKIN_HI))
+        det = line('M-10,8 Q-4,4 6,8', 2.6, SKIN_DK) + streaks(2, 34, -20, 3, 9, 3, 1.2, STREAK)
+        ys = (64, 72, 80)
+        return (F.part(fin_d, FIN, FIN_SH, a, 3, fin_det, sw=2.2) + bangles(ys, 14, 4.2, front=False)
+                + F.part(d, SKIN, SKIN_SH, a, 5, det, sw=3.0, rim=SKIN_HI) + bangles(ys, 14, 4.2, front=True))
     return draw
 
 
@@ -235,12 +270,20 @@ def hand(F):
     return draw
 
 
-def thigh(F):
+def thigh(F, P):
     def draw(a):
         d = smooth([(19, -20), (24, 10), (22, 60), (18, 110), (16, 134), (0, 144), (-16, 134), (-19, 100),
                     (-24, 50), (-25, 10), (-21, -20)])
-        det = line('M-6,30 Q0,72 -6,112', 1.5, PANTS_SH) + line('M10,60 Q14,88 8,120', 1.4, PANTS_SH)
-        return F.part(d, PANTS, PANTS_SH, a, 8, det, sw=3.0, rim=PANTS_HI)
+        det = net(F, -30, 50, 60, 100) + line('M-25,56 Q0,62 23,54', 5, VEST) + line('M-25,56 Q0,62 23,54', 1.4, TRIM)
+        leg = F.part(d, SKIN, SKIN_SH, a, 8, det, sw=3.0, rim=SKIN_HI)
+        # shorts leg with a spiky fringe hem that swings a little
+        sw = math.sin(2 * math.pi * P['phase']) * 2.5 * (0.3 + P['moving'])
+        hem = [(22, 40), (17, 45), (10, 47), (3, 48), (-4, 48), (-11, 47), (-18, 45), (-24, 40)]
+        fringe = ''.join(f'<path d="M{x - 3:.1f},{y - 2:.1f} L{x + sw * (1 + k % 2):.1f},{y + 13 + 3 * (k % 2):.1f} L{x + 3:.1f},{y - 2:.1f} Z" fill="{PANTS}" stroke="#1c1424" stroke-width="1.5" stroke-linejoin="round"/>'
+                         for k, (x, y) in enumerate(hem))
+        sh = smooth([(20, -20), (25, 10), (24, 38), (18, 44), (-4, 48), (-24, 42), (-26, 10), (-21, -20)])
+        sdet = line('M-4,4 Q0,24 -4,40', 1.4, PANTS_SH) + line('M-24,36 Q0,44 23,34', 1.6, PANTS_HI)
+        return leg + fringe + F.part(sh, PANTS, PANTS_SH, a, 8, sdet, sw=3.0, rim=PANTS_HI)
     return draw
 
 
@@ -248,18 +291,17 @@ def shin(F):
     def draw(a):
         d = smooth([(-17, -12), (17, -12), (16, 30), (12, 80), (10, 124, 1), (-12, 124, 1), (-16, 80),
                     (-21, 30)])
-        wraps = ''.join(line(f'M-24,{y} L24,{y - 8}', 5, WRAP, 'butt') + line(f'M-24,{y + 2.5} L24,{y - 5.5}', 1.2, WRAP_SH, 'butt')
-                        for y in (66, 82, 98, 114))
-        det = (f'<path d="M-24,58 H24 V130 H-24 Z" fill="{WRAP_SH}"/>' + wraps
-               + line('M-20,0 Q0,8 20,-2', 1.5, PANTS_SH))
-        return F.part(d, PANTS, PANTS_SH, a, 6, det, sw=3.0, rim=PANTS_HI)
+        det = (net(F, -30, -20, 60, 140)
+               + line('M-20,0 Q0,8 20,-2', 1.4, SKIN_DK) + streaks(4, 40, -20, 3, 9, 3, 1.2, STREAK)
+               + line('M-14,116 L12,114', 6, VEST, 'butt') + line('M-14,113 L12,111', 1.3, TRIM, 'butt'))  # ankle band
+        return F.part(d, SKIN, SKIN_SH, a, 6, det, sw=3.0, rim=SKIN_HI)
     return draw
 
 
 def foot(F):
     def draw(a):
         d = smooth([(-14, -10), (10, -10), (30, 2), (46, 8), (48, 16, 1), (-16, 18, 1), (-18, 2)])
-        det = (line('M30,8 L32,17 M38,9 L39,17', 1.4, SKIN_DK) + line('M-12,-8 Q0,-2 12,-8', 4, WRAP, 'butt')
+        det = (line('M30,8 L32,17 M38,9 L39,17', 1.4, SKIN_DK)
                + f'<path d="M40,6 Q50,10 48,16 L42,16 Z" fill="{FIN}"/>')
         return F.part(d, SKIN, SKIN_SH, a, 4, det, sw=2.8, rim=SKIN_HI)
     return draw
@@ -269,16 +311,17 @@ def render(P, scale=1.0):
     F = Frame()
     ta = P['torso']
     arm = lambda side: arm_chain(P, side, upper_arm(F), forearm(F), hand(F), hand_scale=1.0)
-    leg = lambda side: leg_chain(P, side, thigh(F), shin(F), foot(F))
+    leg = lambda side: leg_chain(P, side, thigh(F, P), shin(F), foot(F))
     head_g = lambda fn: torso_group(P, g(tr(*NECK, P['head']) + ' scale(.97)', fn(F, ta + P['head'], P)))
     body = ''.join([
         torso_group(P, long_hair(F, P)),
         far(torso_group(P, arm('f')), leg('f')),
         torso_group(P, torso(F, ta, P)),
         leg('n'),
-        torso_group(P, sash(F, ta, P)),
+        torso_group(P, shorts(F, ta, P)),
         head_g(head_back),
         head_g(head_front),
+        torso_group(P, choker(F, ta, P)),
         torso_group(P, arm('n')),
     ])
     return document(F, body, scale, CHAR_SCALE)

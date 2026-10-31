@@ -23,7 +23,9 @@ pieces, so each character has one folder per animation:
 | `crouch/` | 12 @ 10 fps | loop, while holding crouch |
 | `crouch_walk/` | 12 @ 10 fps | loop, sneaking |
 | `jump/` | 8 key poses | 01 anticipation · 02 take-off · 03 rise · 04–05 apex · 06 fall · 07 pre-land · 08 landing |
-The original references are in `assets/references/` – keep them open next to the templates.
+The original references are in `assets/references/` – keep them open next to the templates
+(`atlas_reference.jpg` for Atlas's face/fins, `Atlas_1.jpg`–`Atlas_4.jpg` for his outfit,
+`fishcat_reference.jpg` for Fishcat).
 
 ## Naming
 
